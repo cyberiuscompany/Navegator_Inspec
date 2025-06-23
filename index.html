@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Navegator Inpec</title>
+  <link rel="icon" type="image/x-icon" href="cyberius.ico">
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Fira Code', monospace;
+      background-color: #2d3037;
+      color: #83f1e8;
+    }
+    nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background-color: #4f5354;
+      padding: 0.8rem 1.2rem;
+    }
+    .nav-left {
+      font-weight: bold;
+      font-size: 1.2rem;
+    }
+    .nav-right input {
+      padding: 0.3rem;
+      border-radius: 5px;
+      border: none;
+      outline: none;
+      background-color: #939194;
+      color: #2d3037;
+    }
+    .container {
+      padding: 2rem;
+    }
+    .data-row {
+      background-color: #4f5354;
+      margin-bottom: 0.6rem;
+      padding: 0.8rem;
+      border-radius: 5px;
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+    }
+    .data-label {
+      color: #939194;
+    }
+    .data-value {
+      color: #83f1e8;
+      max-width: 70%;
+      word-break: break-word;
+      text-align: right;
+    }
+    .summary {
+      background-color: #2d3037;
+      border-bottom: 2px solid #83f1e8;
+      margin-bottom: 2rem;
+      padding-bottom: 1rem;
+    }
+    .summary h2 {
+      text-align: center;
+      color: #83f1e8;
+      font-size: 1.5rem;
+      margin-bottom: 0.5rem;
+    }
+    .summary-content {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 2rem;
+      align-items: flex-start;
+      min-height: 400px;
+      padding-top: 5%;
+    }
+    #securityChart {
+      width: 360px;
+      height: 360px;
+      min-height: 360px;
+    }
+    #metricFeedback {
+      max-width: 400px;
+      padding-top: 6%;
+    }
+    .summary p {
+      color: #939194;
+      text-align: center;
+    }
+    #toggleDetails {
+      background-color: #4f5354;
+      border: none;
+      padding: 0.6rem 1rem;
+      color: #83f1e8;
+      cursor: pointer;
+      margin-top: 1rem;
+      border-radius: 5px;
+      display: block;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    footer {
+      text-align: center;
+      padding: 1rem;
+      font-size: 0.9rem;
+      color: #939194;
+      background-color: #2d3037;
+      border-top: 1px solid #4f5354;
+    }
+    #tooltipBox {
+      position: fixed;
+      top: 37%;
+      right: 15%;
+      background: #4f5354;
+      color: #83f1e8;
+      border: 1px solid #83f1e8;
+      padding: 1rem;
+      max-width: 300px;
+      border-radius: 8px;
+      display: none;
+      z-index: 9999;
+      text-align: justify;
+    }
+    #tooltipBox strong {
+      display: block;
+      margin-bottom: 0.5rem;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <nav>
+    <div class="nav-left">Navegator Inspec</div>
+    <div class="nav-right">
+      <input type="text" id="search" placeholder="Buscar...">
+    </div>
+  </nav>
+  <div class="container summary" id="summaryContainer">
+    <h2>Resumen de Seguridad del Navegador</h2>
+    <div class="summary-content">
+      <canvas id="securityChart"></canvas>
+      <div id="metricFeedback"></div>
+    </div>
+    <div id="summaryText"></div>
+    <button id="toggleDetails">Mostrar/Ocultar Detalles Técnicos</button>
+  </div>
+  <div class="container" id="infoContainer" style="display:none;"></div>
+  <footer>
+    &copy;  2025 Cyberius. Todos los derechos reservados.
+  </footer>
+  <div id="tooltipBox"></div>
+  <script>
+    const infoContainer = document.getElementById('infoContainer');
+    const summaryText = document.getElementById('summaryText');
+    const toggleBtn = document.getElementById('toggleDetails');
+    const searchInput = document.getElementById('search');
+
+    toggleBtn.onclick = () => {
+      const isVisible = infoContainer.style.display === 'block';
+      infoContainer.style.display = isVisible ? 'none' : 'block';
+      if (!isVisible) infoContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    };
+
+    async function getIPInfo() {
+      try {
+        const response = await fetch('https://api.ipify.org?format=json');
+        const data = await response.json();
+        return { 'IP Pública': data.ip };
+      } catch {
+        return { 'IP Pública': 'No disponible (requiere conexión)' };
+      }
+    }
+
+    function getBatteryInfo() {
+      if (!navigator.getBattery) return Promise.resolve({});
+      return navigator.getBattery().then(battery => ({
+        'Nivel batería (%)': (battery.level * 100).toFixed(0),
+        'Cargando': battery.charging
+      }));
+    }
+
+    function getWebGLInfo() {
+      try {
+        const canvas = document.createElement('canvas');
+        const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+        const debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
+        return {
+          'GPU': debugInfo ? gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL) : 'No disponible',
+          'Vendor GPU': debugInfo ? gl.getParameter(debugInfo.UNMASKED_VENDOR_WEBGL) : 'No disponible'
+        };
+      } catch (e) {
+        return { 'GPU': 'No disponible', 'Vendor GPU': 'No disponible' };
+      }
+    }
+
+    function getDataPoints() {
+      return {
+        'User Agent': navigator.userAgent,
+        'Idioma': navigator.language,
+        'Cookies habilitadas': navigator.cookieEnabled,
+        'Java habilitado': navigator.javaEnabled(),
+        'Touch soportado': 'ontouchstart' in window,
+        'Modo online': navigator.onLine,
+        'Clipboard API': !!navigator.clipboard,
+        'Bluetooth API': !!navigator.bluetooth,
+        'USB API': !!navigator.usb,
+        'Service Worker': 'serviceWorker' in navigator,
+        'WebGL Soportado': (() => {
+          try {
+            const canvas = document.createElement('canvas');
+            return !!canvas.getContext('webgl');
+          } catch { return false; }
+        })(),
+        'RAM (GB)': navigator.deviceMemory || 'Desconocido',
+        'CPU núcleos': navigator.hardwareConcurrency || 'Desconocido',
+        'Pantalla': `${screen.width}x${screen.height}`,
+        'Profundidad color': screen.colorDepth,
+        'Zona horaria': Intl.DateTimeFormat().resolvedOptions().timeZone
+      };
+    }
+
+    function calculateMetrics(data) {
+      return {
+        privacidad: data['Cookies habilitadas'] ? 20 : 10,
+        proteccion: data['Service Worker'] ? 20 : 10,
+        rendimiento: data['RAM (GB)'] >= 4 ? 20 : 10,
+        soporte: data['WebGL Soportado'] && data['USB API'] && data['Clipboard API'] ? 20 : 10,
+        configuracion: !data['Java habilitado'] ? 20 : 10
+      };
+    }
+
+    function evaluateMetric(label, score) {
+      if (score >= 18) return `🟢 ${label}: OK`;
+      if (score >= 14) return `🟡 ${label}: Mejorable`;
+      return `🔴 ${label}: Débil`;
+    }
+
+    function showTooltip(label, content) {
+      const tooltip = document.getElementById('tooltipBox');
+      tooltip.innerHTML = `<strong>${label}</strong><br><br>${content}`;
+      tooltip.style.display = 'block';
+      setTimeout(() => tooltip.style.display = 'none', 2000);
+    }
+
+    async function renderData() {
+      const [batteryInfo, ipInfo] = await Promise.all([getBatteryInfo(), getIPInfo()]);
+      const coreData = getDataPoints();
+      const allData = { ...coreData, ...getWebGLInfo(), ...batteryInfo, ...ipInfo };
+      const metrics = calculateMetrics(allData);
+
+      const ctx = document.getElementById('securityChart').getContext('2d');
+      new Chart(ctx, {
+        type: 'radar',
+        data: {
+          labels: ['Privacidad', 'Protección', 'Rendimiento', 'Soporte', 'Configuración'],
+          datasets: [{
+            label: 'Nivel de Seguridad',
+            data: Object.values(metrics),
+            fill: true,
+            backgroundColor: 'rgba(131, 241, 232, 0.2)',
+            borderColor: '#83f1e8',
+            pointBackgroundColor: '#83f1e8'
+          }]
+        },
+        options: {
+          responsive: false,
+          scales: {
+            r: {
+              angleLines: { color: '#939194' },
+              grid: { color: '#4f5354' },
+              pointLabels: { color: '#83f1e8' },
+              ticks: { color: '#83f1e8', backdropColor: '#2d3037' }
+            }
+          },
+          plugins: {
+            legend: { labels: { color: '#83f1e8' } }
+          }
+        }
+      });
+
+      const explanations = {
+        Privacidad: 'Se basa en si las cookies están habilitadas. Tenerlas puede afectar a tu privacidad.',
+        Proteccion: 'Se analiza si el navegador permite Service Workers, usados para aplicaciones modernas y cacheado seguro.',
+        Rendimiento: 'Evalúa si el navegador reporta al menos 4 GB de RAM disponible. Algunos navegadores no informan correctamente.',
+        Soporte: 'Comprueba si el navegador soporta WebGL, Clipboard API y USB API.',
+        Configuracion: 'Revisa si Java está deshabilitado, lo cual es recomendable por seguridad.'
+      };
+
+      summaryText.innerHTML = `
+        <p>🔍 Se han analizado <strong>${Object.keys(allData).length}</strong> puntos (navegador, hardware, APIs, red).</p>
+        <p>🔐 Funciones útiles activas: <strong>${Object.entries(allData).filter(([k, v]) => v === true).length}</strong></p>
+        <p>📌 IP Pública: <strong>${allData['IP Pública']}</strong></p>
+      `;
+      const feedbackHTML = Object.entries(metrics).map(([k, v]) => {
+        const label = k.charAt(0).toUpperCase() + k.slice(1);
+        const estado = evaluateMetric(label, v);
+        const color = v >= 18 ? '#00c980' : v >= 14 ? '#d1b400' : '#ff4c4c';
+        return `<div style="margin-bottom: 0.5rem;">
+          <span style="cursor: pointer; color: ${color}; font-weight: bold;" onclick="showTooltip('${label}', \`${explanations[label]}\`)">
+            ${estado} <span style='font-size: 0.9rem;'>ℹ️</span>
+          </span>
+        </div>`;
+      }).join('');
+
+      document.getElementById('metricFeedback').innerHTML = feedbackHTML;
+
+      infoContainer.innerHTML = '';
+      Object.entries(allData).forEach(([key, value]) => {
+        const row = document.createElement('div');
+        row.className = 'data-row';
+        const label = document.createElement('div');
+        label.className = 'data-label';
+        label.textContent = key;
+        const val = document.createElement('div');
+        val.className = 'data-value';
+        val.textContent = value;
+        row.appendChild(label);
+        row.appendChild(val);
+        infoContainer.appendChild(row);
+      });
+    }
+
+    searchInput.addEventListener('input', e => {
+      const val = e.target.value.toLowerCase();
+      document.querySelectorAll('.data-row').forEach(row => {
+        const match = row.textContent.toLowerCase().includes(val);
+        row.style.display = match ? 'flex' : 'none';
+      });
+    });
+
+    renderData();
+  </script>
+</body>
+</html>
