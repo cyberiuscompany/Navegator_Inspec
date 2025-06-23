@@ -1,6 +1,6 @@
 # 🛡️ Navegator_Inspec
 
-**Cyberius | Herramienta ligera y rápida para analizar la seguridad nativa del navegador web directamente desde el propio navegador.**
+**Herramienta ligera y rápida para analizar la seguridad nativa del navegador web directamente desde el propio navegador.**
 
 ---
 
