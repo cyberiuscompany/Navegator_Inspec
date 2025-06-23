@@ -41,15 +41,17 @@ Detecta funciones como:
 
 ## 🖼️ Vista Previa
 
-### Index Zoom Principal
-![index](./Index-zoom.png)
-
 ### Index Principal
 ![index](./Index.png)
 
 ### Revisiones Tecnicas
 ![Iniciando Búsqueda](./Revisiones.png)
 
+### Index Zoom Principal (Navegador Seguro)
+![index](./Index-zoom.png)
+
+### Index Zoom Principal (Navegador Inseguro)
+![index](./caso-navegador-inseguro.png)
 
 ---
 
