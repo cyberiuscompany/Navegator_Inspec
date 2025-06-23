@@ -60,10 +60,6 @@ Detecta funciones como:
 | Archivo         | Descripción                                        |
 |----------------|----------------------------------------------------|
 | `index.html`    | Página principal con el escáner                    |
-| `manifest.json` | Configuración como PWA                            |
-| `sw.js`         | Service Worker para caché y modo offline          |
-| `cyberius.ico`  | Favicon de la herramienta                         |
-| `*.png`         | Capturas de pantalla y gráficos                   |
 
 ---
 
