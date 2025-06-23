@@ -50,6 +50,9 @@ Detecta funciones como:
 ### Index Zoom Principal (Navegador Seguro)
 ![index](./Index-zoom.png)
 
+### Index Zoom Principal (Navegador Seguro)
+![index](./clic-de-metricas.png)
+
 ### Index Zoom Principal (Navegador Inseguro)
 ![index](./caso-navegador-inseguro.png)
 
