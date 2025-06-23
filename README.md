@@ -37,10 +37,21 @@ Detecta funciones como:
 
 ---
 
-## 🚀 Demo en GitHub Pages
+---
 
-📡 Puedes probarla directamente sin instalar nada:  
-🔗 [https://cyberiuscompany.github.io/Navegator_Inspec](https://cyberiuscompany.github.io/Navegator_Inspec)
+## 🖼️ Vista Previa
+
+### Index Zoom Principal
+![index](./Index-zoom.png)
+
+### Index Principal
+![index](./Index.png)
+
+### Revisiones Tecnicas
+![Iniciando Búsqueda](./Revisiones.png)
+
+
+---
 
 ---
 
@@ -56,8 +67,4 @@ Detecta funciones como:
 
 ---
 
-## 🧩 Cómo instalar localmente
 
-```bash
-npm install -g serve
-serve
