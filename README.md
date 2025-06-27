@@ -37,6 +37,15 @@ Detecta funciones como:
 
 ---
 
+## 📄 Documentación adicional
+
+- [🔐 Seguridad](.github/SECURITY.md)
+- [📜 Licencia](LICENSE)
+- [🤝 Código de Conducta](.github/CODE_OF_CONDUCT.md)
+- [📬 Cómo contribuir](.github/CONTRIBUTING.md)
+- [📢 Soporte](.github/SUPPORT.md)
+- [⚠️ Aviso legal](DISCLAIMER.md)
+
 ---
 
 ## 🖼️ Vista Previa
