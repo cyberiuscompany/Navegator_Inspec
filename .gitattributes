@@ -44,8 +44,6 @@
 # 🚀 Scripts y ejecutables (marcar como Shell o similares)
 # ==============================
 
-start.sh        linguist-language=Shell
-stop.sh         linguist-language=Shell
 *.bash          linguist-language=Shell
 *.zsh           linguist-language=Shell
 *.command       linguist-language=Shell
